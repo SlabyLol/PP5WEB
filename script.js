@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 
-let active = false, platform = 'PC', currentLevel = 1, isTalking = false;
-let isCutscene = false; // Sperrt die Steuerung
+let active = false, platform = 'PC', currentLevel = 1, isTalking = false, isCutscene = false;
 let moveInp = { x: 0, y: 0 }, lookInp = { x: 0, y: 0 }, rot = { lat: 0, lon: -90 };
 const colliders = [];
 const raycaster = new THREE.Raycaster();
@@ -22,21 +21,21 @@ const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
 const createW = (w,h,d, x,y,z) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), wallMat);
     m.position.set(x,y,z); scene.add(m); 
-    colliders.push({box: new THREE.Box3().setFromObject(m), mesh: m});
+    colliders.push(new THREE.Box3().setFromObject(m));
     return m;
 };
 
+// Map
 createW(1, 8, 100, 7, 4, -40); createW(1, 8, 100, -7, 4, -40);
 const door = createW(14, 8, 1, 0, 4, -45);
 
-// --- POPPY ALS BABY ---
+// Poppy Baby
 const poppy = new THREE.Group();
-const pBody = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), new THREE.MeshStandardMaterial({color: 0xffffff}));
-const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), new THREE.MeshStandardMaterial({color: 0xffcccc}));
-pHead.position.y = 0.35;
-const pHair = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.4), new THREE.MeshStandardMaterial({color: 0xff0000}));
-pHair.position.y = 0.5;
-poppy.add(pBody, pHead, pHair);
+poppy.add(new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), new THREE.MeshStandardMaterial({color: 0xffffff})));
+const head = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), new THREE.MeshStandardMaterial({color: 0xffcccc}));
+head.position.y = 0.35; poppy.add(head);
+const hair = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.4), new THREE.MeshStandardMaterial({color: 0xff0000}));
+hair.position.y = 0.52; poppy.add(hair);
 poppy.position.set(0, 0.3, -50); poppy.visible = false;
 scene.add(poppy);
 
@@ -47,53 +46,55 @@ camera.add(hB); camera.add(hR); hB.position.set(-0.7,-0.5,-1); hR.position.set(0
 const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.7), new THREE.MeshBasicMaterial({color: 0xff0000}));
 screen.position.set(6.4, 1.8, -15); screen.rotation.y = -Math.PI/2; scene.add(screen);
 
-// --- STORY LOGIK ---
-const dialogs = ["Endlich bist du hier...", "Sieh mich an. Ich bin winzig geworden...", "Folge mir jetzt. Wir verschwinden von hier!"];
+// Story
+const dialogs = ["Du hast es geschafft...", "Ich bin jetzt ein Baby, aber ich kenne den Weg.", "Lauf mir nach!"];
 
 function startPoppyTalk() {
     isTalking = true;
     const box = document.getElementById('dialog-container');
-    const text = document.getElementById('dialog-text');
+    const textEl = document.getElementById('dialog-text');
     box.style.display = 'block';
     let i = 0;
     const interval = setInterval(() => {
-        if(i < dialogs.length) { text.innerText = dialogs[i]; i++; }
+        if(i < dialogs.length) { textEl.innerText = dialogs[i]; i++; }
         else { 
-            clearInterval(interval); 
-            box.style.display = 'none'; 
-            isTalking = false;
-            startFollowCutscene(); // Cutscene startet
+            clearInterval(interval); box.style.display = 'none'; 
+            isTalking = false; startCutscene(); 
         }
-    }, 3000);
+    }, 2500);
 }
 
-function startFollowCutscene() {
-    isCutscene = true; // Steuerung sperren
-    document.getElementById('game-msg').innerText = "SYSTEM ÜBERNIMMT...";
-    // Poppy geht in die Ferne
-    const walkTarget = new THREE.Vector3(0, 0.3, -100);
+function startCutscene() {
+    isCutscene = true;
+    // UI AUSBLENDEN
+    document.getElementById('mobile-ui').style.display = 'none';
+    document.getElementById('game-msg').innerText = "FOLGE POPPY...";
     
-    const checkArrival = setInterval(() => {
-        // Poppy läuft weg
-        poppy.position.z -= 0.08;
+    const cutInterval = setInterval(() => {
+        poppy.position.z -= 0.1; // Poppy läuft weg
         
-        // Spieler folgt automatisch
-        const targetPos = poppy.position.clone().add(new THREE.Vector3(0, 1.5, 4));
-        camera.position.lerp(targetPos, 0.05);
+        // Kamera folgt sanft
+        const followPos = new THREE.Vector3(poppy.position.x, 1.8, poppy.position.z + 5);
+        camera.position.lerp(followPos, 0.05);
         camera.lookAt(poppy.position);
 
-        if(poppy.position.z < -70) {
-            clearInterval(checkArrival);
-            showLoadingScreen();
+        if(poppy.position.z < -75) {
+            clearInterval(cutInterval);
+            showLoad();
         }
     }, 20);
 }
 
-function showLoadingScreen() {
+function showLoad() {
     document.getElementById('loading-screen').style.display = 'flex';
     setTimeout(() => {
-        location.reload(); // Hier würde Level 2 Code stehen
-    }, 4000);
+        // HIER WIRD DIE STEUERUNG WIEDER FREIGEGEBEN (Level 2 Simulation)
+        document.getElementById('loading-screen').style.display = 'none';
+        isCutscene = false;
+        camera.position.set(0, 1.8, 0); // Neustart Position
+        if(platform === 'Mobile') document.getElementById('mobile-ui').style.display = 'block';
+        document.getElementById('game-msg').innerText = "LEVEL 2: DIE TIEFE";
+    }, 5000);
 }
 
 window.startGame = (p) => { platform = p; active = true; document.getElementById('menu-overlay').style.display = 'none'; if(p === 'Mobile') document.getElementById('mobile-ui').style.display = 'block'; else renderer.domElement.requestPointerLock(); };
@@ -104,9 +105,8 @@ window.shoot = (side) => {
     raycaster.set(camera.position, new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion));
     const hits = raycaster.intersectObjects(scene.children);
     if(hits.length > 0 && hits[0].object === screen && side === 'blue') {
-        screen.material.color.set(0x00ff00);
-        door.position.y = 12; poppy.visible = true;
-        startPoppyTalk();
+        screen.material.color.set(0x00ff00); door.position.y = 10;
+        poppy.visible = true; startPoppyTalk();
     }
     setTimeout(() => h.position.z = -1, 400);
 };
@@ -122,20 +122,17 @@ let keys = {}; window.onkeydown = (e) => keys[e.code] = true; window.onkeyup = (
 
 function loop() {
     requestAnimationFrame(loop); if(!active) return;
-    
     if(!isCutscene) {
         if(platform === 'Mobile') { rot.lon += lookInp.x * 3.5; rot.lat -= lookInp.y * 3.0; }
         else { window.onmousemove = (e) => { if(document.pointerLockElement) { rot.lon += e.movementX*0.15; rot.lat -= e.movementY*0.15; }}; }
         rot.lat = Math.max(-85, Math.min(85, rot.lat));
         camera.lookAt(new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90-rot.lat), THREE.MathUtils.degToRad(rot.lon)).add(camera.position));
-        
         const old = camera.position.clone();
         if(keys['KeyW']) camera.translateZ(-0.2); if(keys['KeyS']) camera.translateZ(0.2);
         if(platform === 'Mobile') { camera.translateZ(moveInp.y*0.2); camera.translateX(moveInp.x*0.2); }
         camera.position.y = 1.8;
-        if(colliders.some(c => new THREE.Box3().setFromCenterAndSize(camera.position, new THREE.Vector3(1,2,1)).intersectsBox(c.box) && c.mesh.position.y < 5)) camera.position.copy(old);
+        if(colliders.some(c => new THREE.Box3().setFromCenterAndSize(camera.position, new THREE.Vector3(1,2,1)).intersectsBox(c))) camera.position.copy(old);
     }
-    
     renderer.render(scene, camera);
 }
 loop();
