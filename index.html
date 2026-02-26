@@ -3,61 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Poppy Playtime Chapter 5 - FULL REMAKE</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nosifer&family=Oswald:wght@700&display=swap');
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Oswald', sans-serif; }
-        
-        /* --- STARTMENÜ --- */
-        #menu-overlay {
-            position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
-            background: radial-gradient(circle, #200 0%, #000 90%); z-index: 1000;
-        }
-        .menu-box { text-align: center; color: white; }
-        h1 { font-family: 'Nosifer'; color: #f00; font-size: clamp(2rem, 10vw, 4rem); text-shadow: 0 0 20px #f00; margin: 0; }
-        .p-select { display: flex; gap: 20px; margin-top: 40px; justify-content: center; }
-        .btn {
-            background: #111; color: #fff; border: 3px solid #444; padding: 20px;
-            font-size: 1.2rem; cursor: pointer; transition: 0.3s; width: 150px; border-radius: 10px;
-        }
-        .btn:hover { border-color: #f00; transform: scale(1.1); }
-
-        /* --- MOBILE UI --- */
-        #mobile-ui { position: absolute; inset: 0; pointer-events: none; z-index: 100; display: none; }
-        .joy-area {
-            position: absolute; bottom: 40px; width: 120px; height: 120px;
-            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%; pointer-events: auto;
-        }
-        #joy-move { left: 40px; }
-        #joy-look { right: 40px; }
-        .knob {
-            position: absolute; top: 35px; left: 35px; width: 50px; height: 50px;
-            background: rgba(255,255,255,0.5); border-radius: 50%;
-        }
-        .shoot-btns { position: absolute; bottom: 180px; right: 40px; display: flex; flex-direction: column; gap: 15px; pointer-events: auto; }
-        .s-btn { width: 70px; height: 70px; border-radius: 15px; border: 3px solid #000; }
-        #b-blue { background: #0088ff; box-shadow: 0 0 15px #0088ff; }
-        #b-red { background: #ff0000; box-shadow: 0 0 15px #ff0000; }
-
-        /* --- GAME INFO --- */
-        #game-msg { position: absolute; top: 30px; width: 100%; text-align: center; color: #f00; font-size: 1.5rem; z-index: 100; text-shadow: 2px 2px #000; }
-    </style>
+    <title>Poppy Playtime Chapter 5 - Hardcore</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="menu-overlay">
         <div class="menu-box">
             <h1>POPPY PLAYTIME</h1>
-            <p style="color:#888; letter-spacing:5px;">CHAPTER 5 REMAKE</p>
+            <p style="color:#aaa; letter-spacing:8px;">CHAPTER 5: THE ABYSS</p>
             <div class="p-select">
-                <button class="btn" onclick="startGame('PC')">🖥️ PC</button>
-                <button class="btn" onclick="startGame('Mobile')">📱 MOBILE</button>
+                <button class="btn btn-pc" onclick="startGame('PC')">🖥️ PC MODE</button>
+                <button class="btn btn-mobile" onclick="startGame('Mobile')">📱 MOBILE</button>
             </div>
         </div>
     </div>
 
-    <div id="game-msg">FINDE DEN HAND-SCANNER</div>
+    <div id="game-msg">MISSION: SCANN DIE BLAUE HAND</div>
 
     <div id="mobile-ui">
         <div id="joy-move" class="joy-area"><div class="knob" id="knob-move"></div></div>
@@ -68,208 +30,11 @@
         </div>
     </div>
 
+    <div id="jumpscare">HUGGY HAT DICH!</div>
+
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
     </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-
-        let active = false, platform = 'PC';
-        let moveInp = { x: 0, y: 0 }, lookInp = { x: 0, y: 0 };
-        let rot = { lat: 0, lon: -90 };
-        const colliders = [];
-
-        // --- SCENE SETUP ---
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.08); // Nebel etwas gelüftet
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // --- LICHT (HELLER) ---
-        const amb = new THREE.AmbientLight(0x404040, 0.6); // Grundlicht
-        scene.add(amb);
-        const flash = new THREE.SpotLight(0xffffff, 100, 40, 0.4, 0.3);
-        camera.add(flash);
-        flash.position.set(0,0,0.2);
-        flash.target.position.set(0,0,-1);
-        camera.add(flash.target);
-        scene.add(camera);
-
-        // --- LEVEL BAUEN ---
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-        
-        // Boden mit Gitter zur Orientierung
-        const grid = new THREE.GridHelper(100, 50, 0xff0000, 0x222222);
-        grid.position.y = 0.01;
-        scene.add(grid);
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(100,100), floorMat);
-        floor.rotation.x = -Math.PI/2;
-        scene.add(floor);
-
-        function createWall(w,h,d, x,y,z) {
-            const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), wallMat);
-            m.position.set(x,y,z);
-            scene.add(m);
-            colliders.push(new THREE.Box3().setFromObject(m));
-        }
-        // Der Flur
-        createWall(1, 6, 50, 6, 3, -20);
-        createWall(1, 6, 50, -6, 3, -20);
-        createWall(12, 6, 1, 0, 3, -45); // Hinterwand
-
-        // --- OBJEKTE ---
-        // Gelber Block zum Ziehen
-        const block = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshStandardMaterial({color: 0xffaa00}));
-        block.position.set(0, 1, -15);
-        scene.add(block);
-        let blockCol = new THREE.Box3().setFromObject(block);
-
-        // Hand-Scanner
-        const terminal = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.2, 0.8), new THREE.MeshStandardMaterial({color: 0x333333}));
-        terminal.position.set(5.4, 1.5, -10);
-        scene.add(terminal);
-        const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), new THREE.MeshBasicMaterial({color: 0xff0000}));
-        screen.position.set(5.29, 1.7, -10);
-        screen.rotation.y = -Math.PI/2;
-        scene.add(screen);
-
-        // Huggy Wuggy (Dummy)
-        const huggy = new THREE.Group();
-        const body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 3.5, 0.5), new THREE.MeshStandardMaterial({color: 0x0000ff}));
-        huggy.add(body);
-        huggy.position.set(0, 1.75, -40);
-        huggy.visible = false;
-        scene.add(huggy);
-
-        // --- GRABPACK HÄNDE ---
-        const hBlue = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.1), new THREE.MeshStandardMaterial({color: 0x0088ff}));
-        const hRed = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.1), new THREE.MeshStandardMaterial({color: 0xff0000}));
-        camera.add(hBlue); camera.add(hRed);
-        hBlue.position.set(-0.7, -0.5, -1); hRed.position.set(0.7, -0.5, -1);
-
-        // --- LOGIK & STEUERUNG ---
-        window.startGame = (p) => {
-            platform = p; active = true;
-            document.getElementById('menu-overlay').style.display = 'none';
-            if(platform === 'Mobile') document.getElementById('mobile-ui').style.display = 'block';
-            else renderer.domElement.requestPointerLock();
-        };
-
-        window.shoot = (side) => {
-            const hand = side === 'blue' ? hBlue : hRed;
-            const originalPos = hand.position.z;
-            hand.position.z = -10; // "Schuss"
-
-            const ray = new THREE.Raycaster();
-            const dir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
-            ray.set(camera.position, dir);
-            const hits = ray.intersectObjects(scene.children, true);
-
-            if(hits.length > 0) {
-                const target = hits[0].object;
-                if(target === block) {
-                    block.position.add(dir.multiplyScalar(-2.5)); // Ziehen
-                    block.position.y = 1;
-                }
-                if(target === screen && side === 'blue') {
-                    screen.material.color.set(0x00ff00);
-                    document.getElementById('game-msg').innerText = "SCAN KOMPLETT! LAUF!";
-                    huggy.visible = true;
-                }
-            }
-            setTimeout(() => hand.position.z = originalPos, 300);
-        };
-
-        // Mobile Joysticks
-        const initJoy = (id, knobId, cb) => {
-            const zone = document.getElementById(id);
-            const knob = document.getElementById(knobId);
-            zone.onpointermove = (e) => {
-                const r = zone.getBoundingClientRect();
-                const x = (e.clientX - r.left - 60) / 60;
-                const y = (e.clientY - r.top - 60) / 60;
-                knob.style.transform = `translate(${x*30}px, ${y*30}px)`;
-                cb(x, y);
-            };
-            zone.onpointerup = () => { knob.style.transform = 'translate(0,0)'; cb(0,0); };
-        };
-        initJoy('joy-move', 'knob-move', (x,y) => moveInp = {x,y});
-        initJoy('joy-look', 'knob-look', (x,y) => lookInp = {x,y});
-
-        // PC Keys
-        let keys = {};
-        window.onkeydown = (e) => keys[e.code] = true;
-        window.onkeyup = (e) => keys[e.code] = false;
-        window.onmousedown = (e) => { if(active && platform === 'PC') shoot(e.button===0?'blue':'red'); };
-
-        // --- GAME LOOP ---
-        function update() {
-            requestAnimationFrame(update);
-            if(!active) return;
-
-            // Kamera Rotation
-            if(platform === 'Mobile') {
-                rot.lon += lookInp.x * 2.5;
-                rot.lat -= lookInp.y * 2.5;
-            } else {
-                window.onmousemove = (e) => {
-                    if(document.pointerLockElement) {
-                        rot.lon += e.movementX * 0.15;
-                        rot.lat -= e.movementY * 0.15;
-                    }
-                };
-            }
-            rot.lat = Math.max(-85, Math.min(85, rot.lat));
-            const phi = THREE.MathUtils.degToRad(90 - rot.lat);
-            const theta = THREE.MathUtils.degToRad(rot.lon);
-            const t = new THREE.Vector3().setFromSphericalCoords(1, phi, theta).add(camera.position);
-            camera.lookAt(t);
-
-            // Bewegung & Kollision
-            const oldPos = camera.position.clone();
-            const s = 0.15;
-            if(keys['KeyW']) camera.translateZ(-s);
-            if(keys['KeyS']) camera.translateZ(s);
-            if(keys['KeyA']) camera.translateX(-s);
-            if(keys['KeyD']) camera.translateX(s);
-            if(platform === 'Mobile') {
-                camera.translateZ(moveInp.y * s);
-                camera.translateX(moveInp.x * s);
-            }
-            camera.position.y = 1.7; // Augenhöhe fest
-
-            // Kollisionsprüfung
-            const pBox = new THREE.Box3().setFromCenterAndSize(camera.position, new THREE.Vector3(1, 2, 1));
-            blockCol.setFromObject(block);
-            let hit = false;
-            colliders.forEach(c => { if(pBox.intersectsBox(c)) hit = true; });
-            if(pBox.intersectsBox(blockCol)) hit = true;
-            if(hit) camera.position.copy(oldPos);
-
-            // Huggy KI
-            if(huggy.visible) {
-                const dir = new THREE.Vector3().subVectors(camera.position, huggy.position).normalize();
-                huggy.position.x += dir.x * 0.04;
-                huggy.position.z += dir.z * 0.04;
-                if(huggy.position.distanceTo(camera.position) < 2) {
-                    document.body.innerHTML = "<h1 style='color:red; text-align:center; margin-top:20%; font-family:Nosifer;'>JUMPSCARE! GEFRESSEN!</h1>";
-                    setTimeout(() => location.reload(), 2000);
-                }
-            }
-
-            renderer.render(scene, camera);
-        }
-        update();
-
-        window.onresize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
-    </script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
