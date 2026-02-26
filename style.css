@@ -1,0 +1,63 @@
+body, html { 
+    margin: 0; padding: 0; width: 100%; height: 100%; 
+    overflow: hidden; background: #000; touch-action: none; 
+    font-family: 'Courier New', Courier, monospace; font-weight: bold; 
+}
+
+canvas { display: block; }
+
+/* Menü Styling */
+#menu-overlay {
+    position: absolute; inset: 0; display: flex; justify-content: center; align-items: center;
+    background: radial-gradient(circle, #200 0%, #000 90%); z-index: 1000; transition: 0.5s;
+}
+
+.menu-box { 
+    text-align: center; color: white; border: 4px solid #f00; 
+    padding: 40px; background: rgba(0,0,0,0.9); border-radius: 10px; 
+    box-shadow: 0 0 30px #f00; 
+}
+
+h1 { color: #f00; font-size: 3rem; margin: 0; text-shadow: 0 0 15px #f00; text-transform: uppercase; letter-spacing: 5px; }
+
+.btn {
+    background: #111; color: #fff; border: 3px solid #444; padding: 20px;
+    font-size: 1.2rem; cursor: pointer; transition: 0.3s; width: 160px; 
+    border-radius: 5px; font-weight: bold; text-transform: uppercase;
+}
+
+.btn-pc:hover { border-color: #0088ff; box-shadow: 0 0 15px #0088ff; }
+.btn-mobile:hover { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
+
+/* Mobile Joysticks */
+#mobile-ui { position: absolute; inset: 0; pointer-events: none; z-index: 100; display: none; }
+
+.joy-area {
+    position: absolute; bottom: 50px; width: 130px; height: 130px;
+    background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 50%; pointer-events: auto;
+}
+
+#joy-move { left: 40px; }
+#joy-look { right: 40px; }
+
+.knob {
+    position: absolute; top: 40px; left: 40px; width: 50px; height: 50px;
+    background: rgba(255,255,255,0.4); border-radius: 50%;
+}
+
+/* GrabPack Buttons */
+.shoot-btns { position: absolute; bottom: 200px; right: 40px; display: flex; flex-direction: column; gap: 20px; pointer-events: auto; }
+.s-btn { width: 75px; height: 75px; border-radius: 15px; border: 4px solid #000; cursor: pointer; }
+#b-blue { background: #0088ff; box-shadow: 0 0 20px #0088ff; }
+#b-red { background: #ff0000; box-shadow: 0 0 20px #ff0000; }
+
+#game-msg { position: absolute; top: 40px; width: 100%; text-align: center; color: #fff; font-size: 1.8rem; z-index: 100; text-shadow: 2px 2px #000; pointer-events: none; }
+
+#jumpscare {
+    position: absolute; inset: 0; background: #000; display: none; z-index: 2000;
+    color: red; font-size: 4rem; justify-content: center; align-items: center; 
+    text-align: center; animation: shake 0.1s infinite;
+}
+
+@keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } }
