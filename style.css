@@ -1,12 +1,14 @@
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; font-family: 'Courier New', monospace; }
 canvas { display: block; }
 
-#menu-overlay { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle, #200 0%, #000 90%); z-index: 1000; }
+#menu-overlay, #loading-screen { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #000; z-index: 2000; }
+#loading-screen { display: none; background: radial-gradient(circle, #111 0%, #000 100%); flex-direction: column; color: white; }
+
 .menu-box { text-align: center; color: white; border: 4px solid #f00; padding: 40px; background: #000; box-shadow: 0 0 20px #f00; }
-h1 { color: #f00; font-size: 2.5rem; margin: 0; text-transform: uppercase; }
+h1 { color: #f00; font-size: 2.5rem; margin: 0; }
 .btn { background: #111; color: #fff; border: 2px solid #444; padding: 15px; cursor: pointer; margin: 10px; width: 140px; font-weight: bold; }
 
-#dialog-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70%; background: rgba(0, 0, 0, 0.9); border: 2px solid #f0f; color: #f0f; padding: 20px; display: none; z-index: 1500; text-align: center; box-shadow: 0 0 15px #f0f; }
+#dialog-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 70%; background: rgba(0, 0, 0, 0.9); border: 2px solid #f0f; color: #f0f; padding: 20px; display: none; z-index: 1500; text-align: center; }
 .poppy-name { color: #fff; font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 10px; }
 
 #mobile-ui { position: absolute; inset: 0; pointer-events: none; display: none; }
@@ -14,7 +16,8 @@ h1 { color: #f00; font-size: 2.5rem; margin: 0; text-transform: uppercase; }
 #joy-move { left: 40px; } #joy-look { right: 40px; }
 .knob { position: absolute; top: 35px; left: 35px; width: 40px; height: 40px; background: #fff; border-radius: 50%; }
 .shoot-btns { position: absolute; bottom: 180px; right: 40px; pointer-events: auto; display: flex; flex-direction: column; gap: 15px; }
-.s-btn { width: 70px; height: 70px; border-radius: 15px; border: 3px solid #000; cursor: pointer; }
-#b-blue { background: #0088ff; box-shadow: 0 0 10px #0088ff; }
-#b-red { background: #ff0000; box-shadow: 0 0 10px #ff0000; }
-#game-msg { position: absolute; top: 30px; width: 100%; text-align: center; color: #fff; font-size: 1.2rem; text-shadow: 2px 2px #000; }
+.s-btn { width: 70px; height: 70px; border-radius: 15px; border: 3px solid #000; }
+#b-blue { background: #0088ff; } #b-red { background: #ff0000; }
+
+.spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid #f0f; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
