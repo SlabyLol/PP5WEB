@@ -3,46 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Poppy Playtime Chapter 5 - FULL REMAKE</title>
+    <title>Poppy Playtime Ch. 5 - Mobile & PC Fixed</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nosifer&family=Oswald:wght@700&display=swap');
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; touch-action: none; }
+        canvas { display: block; }
 
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Oswald', sans-serif; }
-        canvas { display: block; position: absolute; z-index: 1; }
-
-        /* --- STARTMENÜ (DEIN LIEBLINGSDESIGN) --- */
+        /* --- MENÜ --- */
         #menu-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; justify-content: center; align-items: center;
-            background: radial-gradient(circle, #200 0%, #000 80%);
-            z-index: 100; transition: opacity 1s;
+            background: radial-gradient(circle, #200 0%, #000 90%);
+            z-index: 100; transition: 0.8s;
         }
-        .menu-box { text-align: center; z-index: 110; }
-        h1 { font-family: 'Nosifer', sans-serif; color: #f00; font-size: 3rem; text-shadow: 0 0 20px #600; margin: 0; }
-        p { color: #666; letter-spacing: 5px; margin-bottom: 30px; }
-        
+        .menu-box { text-align: center; }
+        h1 { font-family: 'Nosifer', sans-serif; color: #f00; font-size: 2.5rem; margin: 0; text-shadow: 0 0 15px #f00; }
         .btn {
-            background: #111; color: #fff; border: 2px solid #444; padding: 15px 30px;
-            font-size: 1.2rem; cursor: pointer; margin: 10px; transition: 0.3s; width: 200px;
-        }
-        .pc-btn:hover { border-color: #0088ff; box-shadow: 0 0 15px #0088ff; }
-        .mobile-btn:hover { border-color: #ff0000; box-shadow: 0 0 15px #ff0000; }
-
-        /* --- IN-GAME UI --- */
-        #ui { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 50; display: none; }
-        #crosshair { position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%,-50%); }
-        #jumpscare { 
-            position: absolute; top:0; left:0; width:100%; height:100%; 
-            background: url('https://i.imgur.com/vHpxl4s.png') center/cover; /* Platzhalter für Gruselgesicht */
-            display: none; z-index: 1000; background-color: black;
+            background: #111; color: #fff; border: 2px solid #444; padding: 15px;
+            font-size: 1.2rem; cursor: pointer; margin: 10px; width: 220px; font-family: 'Oswald';
         }
 
-        /* Mobile Controls */
-        #joystick { 
-            position: absolute; bottom: 40px; left: 40px; width: 100px; height: 100px; 
-            background: rgba(255,255,255,0.1); border-radius: 50%; pointer-events: auto; display: none;
+        /* --- MOBILE UI CONTROLS --- */
+        #mobile-controls {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; pointer-events: none; z-index: 50;
         }
-        #stick { position: absolute; top: 25px; left: 25px; width: 50px; height: 50px; background: rgba(255,255,255,0.3); border-radius: 50%; }
+        /* Joystick links */
+        #joystick-base {
+            position: absolute; bottom: 40px; left: 40px; width: 100px; height: 100px;
+            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%; pointer-events: auto;
+        }
+        #joystick-knob {
+            position: absolute; top: 25px; left: 25px; width: 50px; height: 50px;
+            background: rgba(255,255,255,0.5); border-radius: 50%;
+        }
+        /* Hand Buttons rechts */
+        .hand-btn {
+            position: absolute; bottom: 40px; width: 70px; height: 70px;
+            border-radius: 15px; border: 3px solid #000; pointer-events: auto;
+        }
+        #btn-blue { right: 120px; background: #0088ff; box-shadow: 0 0 15px #0088ff; }
+        #btn-red { right: 30px; background: #ff0000; box-shadow: 0 0 15px #ff0000; }
+
+        #jumpscare {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: none; z-index: 200;
+            color: red; font-family: 'Nosifer'; font-size: 3rem;
+            justify-content: center; align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -50,18 +59,18 @@
     <div id="menu-overlay">
         <div class="menu-box">
             <h1>POPPY PLAYTIME</h1>
-            <p>CHAPTER 5 REMAKE</p>
-            <button class="btn pc-btn" onclick="startGame('PC')">PC START</button><br>
-            <button class="btn mobile-btn" onclick="startGame('MOBILE')">MOBILE START</button>
+            <p style="color: #666;">CHAPTER 5 REMAKE</p>
+            <button class="btn" onclick="initGame()">SPIEL STARTEN</button>
         </div>
     </div>
 
-    <div id="jumpscare"></div>
-
-    <div id="ui">
-        <div id="crosshair"></div>
-        <div id="joystick"><div id="stick"></div></div>
+    <div id="mobile-controls">
+        <div id="joystick-base"><div id="joystick-knob"></div></div>
+        <div id="btn-blue" class="hand-btn" onpointerdown="shoot('blue')"></div>
+        <div id="btn-red" class="hand-btn" onpointerdown="shoot('red')"></div>
     </div>
+
+    <div id="jumpscare">GEFRESSEN!</div>
 
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -71,22 +80,22 @@
         import * as THREE from 'three';
 
         let gameActive = false;
-        let isMobile = false;
+        let moveData = { x: 0, y: 0 };
+        let lookData = { lat: 0, lon: -90 };
+
+        // --- ENGINE SETUP ---
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.2);
-        
+        scene.fog = new THREE.FogExp2(0x000000, 0.15);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- LICHT (Die Taschenlampe) ---
-        const flashlight = new THREE.SpotLight(0xffffff, 15);
-        flashlight.angle = 0.4;
-        flashlight.penumbra = 0.3;
-        camera.add(flashlight);
-        flashlight.target.position.set(0, 0, -1);
-        camera.add(flashlight.target);
+        // --- LICHT (VIEL STÄRKER) ---
+        const light = new THREE.PointLight(0xffffff, 50, 20); // Taschenlampe
+        camera.add(light);
+        const amb = new THREE.AmbientLight(0x404040, 0.5); // Grundlicht damit man was sieht
+        scene.add(amb);
         scene.add(camera);
 
         // --- WELT ---
@@ -94,85 +103,94 @@
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // Wände
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
         for(let i = 0; i < 20; i++) {
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 10), wallMat);
-            wall.position.set(4, 2.5, -i * 10);
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 6, 10), new THREE.MeshStandardMaterial({ color: 0x221111 }));
+            wall.position.set(4, 3, -i * 10);
             scene.add(wall);
-            const wallL = wall.clone(); wallL.position.x = -4;
-            scene.add(wallL);
+            const wallL = wall.clone(); wallL.position.x = -4; scene.add(wallL);
         }
 
-        // --- GRABPACK (Hands) ---
-        const handGeo = new THREE.BoxGeometry(0.15, 0.15, 0.3);
-        const blueHand = new THREE.Mesh(handGeo, new THREE.MeshStandardMaterial({ color: 0x00aaff }));
-        const redHand = new THREE.Mesh(handGeo, new THREE.MeshStandardMaterial({ color: 0xff0000 }));
-        blueHand.position.set(-0.4, -0.3, -0.6);
-        redHand.position.set(0.4, -0.3, -0.6);
+        // --- GRABPACK ---
+        const blueHand = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.4), new THREE.MeshStandardMaterial({ color: 0x0088ff }));
+        const redHand = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.4), new THREE.MeshStandardMaterial({ color: 0xff0000 }));
+        blueHand.position.set(-0.5, -0.4, -0.8);
+        redHand.position.set(0.5, -0.4, -0.8);
         camera.add(blueHand); camera.add(redHand);
 
-        // --- MONSTER (Huggy Dummy) ---
-        const monsterGeo = new THREE.BoxGeometry(1, 3, 0.5);
-        const monsterMat = new THREE.MeshStandardMaterial({ color: 0x0000aa });
-        const monster = new THREE.Mesh(monsterGeo, monsterMat);
-        monster.position.set(0, 1.5, -30);
-        scene.add(monster);
-
-        // --- STEUERUNG ---
-        let keys = {};
-        window.addEventListener('keydown', e => keys[e.code] = true);
-        window.addEventListener('keyup', e => keys[e.code] = false);
-
-        window.startGame = (mode) => {
+        // --- START FUNKTION ---
+        window.initGame = () => {
             document.getElementById('menu-overlay').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('menu-overlay').style.display = 'none';
-                document.getElementById('ui').style.display = 'block';
+                document.getElementById('mobile-controls').style.display = 'block';
                 gameActive = true;
-                if(mode === 'PC') renderer.domElement.requestPointerLock();
-                else { isMobile = true; document.getElementById('joystick').style.display = 'block'; }
-            }, 1000);
+                animate();
+            }, 800);
         };
 
-        // GrabPack schießen
-        window.addEventListener('mousedown', () => {
-            if(!gameActive) return;
-            blueHand.position.z = -3; 
-            setTimeout(() => blueHand.position.z = -0.6, 150);
+        // --- MOBILE JOYSTICK LOGIK ---
+        const knob = document.getElementById('joystick-knob');
+        document.getElementById('joystick-base').addEventListener('pointermove', (e) => {
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left - 50;
+            const y = e.clientY - rect.top - 50;
+            const dist = Math.min(Math.sqrt(x*x + y*y), 40);
+            const angle = Math.atan2(y, x);
+            
+            knob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
+            moveData.x = Math.cos(angle) * (dist/40);
+            moveData.y = Math.sin(angle) * (dist/40);
+        });
+        document.getElementById('joystick-base').addEventListener('pointerup', () => {
+            knob.style.transform = 'translate(0,0)';
+            moveData = { x: 0, y: 0 };
         });
 
-        // Maus-Blick
-        window.addEventListener('mousemove', e => {
-            if(document.pointerLockElement === renderer.domElement) {
-                camera.rotation.y -= e.movementX * 0.003;
-                camera.rotation.x -= e.movementY * 0.003;
+        // --- SCHIEßEN ---
+        window.shoot = (color) => {
+            const hand = color === 'blue' ? blueHand : redHand;
+            hand.position.z = -4;
+            setTimeout(() => hand.position.z = -0.8, 200);
+        };
+
+        // --- UMSCHAUEN (TOUCH & MAUS) ---
+        let isPointerDown = false;
+        window.addEventListener('pointerdown', () => isPointerDown = true);
+        window.addEventListener('pointerup', () => isPointerDown = false);
+        window.addEventListener('pointermove', (e) => {
+            if(!gameActive || (e.clientX < 200 && e.clientY > window.innerHeight - 200)) return; 
+            if(isPointerDown || document.pointerLockElement) {
+                lookData.lon += e.movementX * 0.2 || 0;
+                lookData.lat -= e.movementY * 0.2 || 0;
             }
         });
 
+        // --- GAME LOOP ---
         function animate() {
-            requestAnimationFrame(animate);
             if(!gameActive) return;
+            requestAnimationFrame(animate);
 
-            // Laufen
-            if(keys['KeyW']) camera.translateZ(-0.08);
-            if(keys['KeyS']) camera.translateZ(0.08);
+            // Bewegung
+            camera.translateZ(moveData.y * 0.1);
+            camera.translateX(moveData.x * 0.1);
+            camera.position.y = 1.6;
 
-            // Monster "KI" - Es kommt dir langsam näher
-            if(monster.position.distanceTo(camera.position) < 15) {
-                monster.position.z += 0.04;
-            }
-
-            // Jumpscare Bedingung
-            if(monster.position.distanceTo(camera.position) < 1.5) {
-                document.getElementById('jumpscare').style.display = 'block';
-                gameActive = false;
-                setTimeout(() => location.reload(), 2000);
-            }
+            // Rotation
+            lookData.lat = Math.max(-85, Math.min(85, lookData.lat));
+            const phi = THREE.MathUtils.degToRad(90 - lookData.lat);
+            const theta = THREE.MathUtils.degToRad(lookData.lon);
+            const target = new THREE.Vector3();
+            target.setFromSphericalCoords(1, phi, theta).add(camera.position);
+            camera.lookAt(target);
 
             renderer.render(scene, camera);
         }
-        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
