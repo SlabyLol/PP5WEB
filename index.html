@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Poppy Playtime Chapter 5 - Hardcore</title>
+    <title>Poppy Playtime Chapter 5 - Story Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -21,6 +21,11 @@
 
     <div id="game-msg">MISSION: SCANN DIE BLAUE HAND</div>
 
+    <div id="dialog-container">
+        <span class="poppy-name">Poppy:</span>
+        <div id="dialog-text">...</div>
+    </div>
+
     <div id="mobile-ui">
         <div id="joy-move" class="joy-area"><div class="knob" id="knob-move"></div></div>
         <div id="joy-look" class="joy-area"><div class="knob" id="knob-look"></div></div>
@@ -29,8 +34,6 @@
             <div id="b-red" class="s-btn" onpointerdown="shoot('red')"></div>
         </div>
     </div>
-
-    <div id="jumpscare">HUGGY HAT DICH!</div>
 
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
