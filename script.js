@@ -25,20 +25,22 @@ const createW = (w,h,d, x,y,z) => {
     return m;
 };
 
-// Map
+// Level 1 Map
 createW(1, 8, 100, 7, 4, -40); createW(1, 8, 100, -7, 4, -40);
 const door = createW(14, 8, 1, 0, 4, -45);
 
-// Poppy Baby
+// Poppy Baby Modell
 const poppy = new THREE.Group();
-poppy.add(new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), new THREE.MeshStandardMaterial({color: 0xffffff})));
-const head = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), new THREE.MeshStandardMaterial({color: 0xffcccc}));
-head.position.y = 0.35; poppy.add(head);
-const hair = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.4), new THREE.MeshStandardMaterial({color: 0xff0000}));
-hair.position.y = 0.52; poppy.add(hair);
+const pBody = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.4, 0.2), new THREE.MeshStandardMaterial({color: 0xffffff}));
+const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.35, 0.35), new THREE.MeshStandardMaterial({color: 0xffcccc}));
+pHead.position.y = 0.35;
+const pHair = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.4), new THREE.MeshStandardMaterial({color: 0xff0000}));
+pHair.position.y = 0.52;
+poppy.add(pBody, pHead, pHair);
 poppy.position.set(0, 0.3, -50); poppy.visible = false;
 scene.add(poppy);
 
+// GrabPack
 const hB = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.1), new THREE.MeshStandardMaterial({color: 0x0088ff}));
 const hR = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.3,0.1), new THREE.MeshStandardMaterial({color: 0xff0000}));
 camera.add(hB); camera.add(hR); hB.position.set(-0.7,-0.5,-1); hR.position.set(0.7,-0.5,-1);
@@ -46,8 +48,8 @@ camera.add(hB); camera.add(hR); hB.position.set(-0.7,-0.5,-1); hR.position.set(0
 const screen = new THREE.Mesh(new THREE.PlaneGeometry(0.7,0.7), new THREE.MeshBasicMaterial({color: 0xff0000}));
 screen.position.set(6.4, 1.8, -15); screen.rotation.y = -Math.PI/2; scene.add(screen);
 
-// Story
-const dialogs = ["Du hast es geschafft...", "Ich bin jetzt ein Baby, aber ich kenne den Weg.", "Lauf mir nach!"];
+// Story Sequenz
+const dialogs = ["Du hast mich gefunden...", "Ich bin zwar klein, aber ich kenne den Weg.", "Schnell! Folge mir jetzt!"];
 
 function startPoppyTalk() {
     isTalking = true;
@@ -66,19 +68,18 @@ function startPoppyTalk() {
 
 function startCutscene() {
     isCutscene = true;
-    // UI AUSBLENDEN
     document.getElementById('mobile-ui').style.display = 'none';
     document.getElementById('game-msg').innerText = "FOLGE POPPY...";
     
     const cutInterval = setInterval(() => {
-        poppy.position.z -= 0.1; // Poppy läuft weg
+        poppy.position.z -= 0.12; // Poppy läuft weg
         
-        // Kamera folgt sanft
-        const followPos = new THREE.Vector3(poppy.position.x, 1.8, poppy.position.z + 5);
+        // Kamera folgt automatisch (Third-Person-Style Cutscene)
+        const followPos = new THREE.Vector3(poppy.position.x, 1.8, poppy.position.z + 6);
         camera.position.lerp(followPos, 0.05);
         camera.lookAt(poppy.position);
 
-        if(poppy.position.z < -75) {
+        if(poppy.position.z < -80) {
             clearInterval(cutInterval);
             showLoad();
         }
@@ -86,18 +87,24 @@ function startCutscene() {
 }
 
 function showLoad() {
-    document.getElementById('loading-screen').style.display = 'flex';
+    const lScreen = document.getElementById('loading-screen');
+    lScreen.style.display = 'flex'; // Jetzt anzeigen!
+    
     setTimeout(() => {
-        // HIER WIRD DIE STEUERUNG WIEDER FREIGEGEBEN (Level 2 Simulation)
-        document.getElementById('loading-screen').style.display = 'none';
+        lScreen.style.display = 'none';
         isCutscene = false;
-        camera.position.set(0, 1.8, 0); // Neustart Position
+        camera.position.set(0, 1.8, 0); // Reset für Level 2
         if(platform === 'Mobile') document.getElementById('mobile-ui').style.display = 'block';
-        document.getElementById('game-msg').innerText = "LEVEL 2: DIE TIEFE";
+        document.getElementById('game-msg').innerText = "LEVEL 2: DIE FABRIK";
     }, 5000);
 }
 
-window.startGame = (p) => { platform = p; active = true; document.getElementById('menu-overlay').style.display = 'none'; if(p === 'Mobile') document.getElementById('mobile-ui').style.display = 'block'; else renderer.domElement.requestPointerLock(); };
+window.startGame = (p) => { 
+    platform = p; active = true; 
+    document.getElementById('menu-overlay').style.display = 'none'; 
+    if(p === 'Mobile') document.getElementById('mobile-ui').style.display = 'block'; 
+    else renderer.domElement.requestPointerLock(); 
+};
 
 window.shoot = (side) => {
     if(isTalking || isCutscene || !active) return;
@@ -127,11 +134,15 @@ function loop() {
         else { window.onmousemove = (e) => { if(document.pointerLockElement) { rot.lon += e.movementX*0.15; rot.lat -= e.movementY*0.15; }}; }
         rot.lat = Math.max(-85, Math.min(85, rot.lat));
         camera.lookAt(new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90-rot.lat), THREE.MathUtils.degToRad(rot.lon)).add(camera.position));
+        
         const old = camera.position.clone();
         if(keys['KeyW']) camera.translateZ(-0.2); if(keys['KeyS']) camera.translateZ(0.2);
         if(platform === 'Mobile') { camera.translateZ(moveInp.y*0.2); camera.translateX(moveInp.x*0.2); }
         camera.position.y = 1.8;
-        if(colliders.some(c => new THREE.Box3().setFromCenterAndSize(camera.position, new THREE.Vector3(1,2,1)).intersectsBox(c))) camera.position.copy(old);
+        // Kollisions-Check (einfach)
+        if(camera.position.x > 6 || camera.position.x < -6 || camera.position.z < -44) {
+            if(door.position.y < 5) camera.position.copy(old);
+        }
     }
     renderer.render(scene, camera);
 }
