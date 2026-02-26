@@ -2,267 +2,202 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poppy Playtime Chapter 5 - 3D Remake</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poppy Playtime Chapter 5 Remake - 3D</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Nosifer&family=Oswald:wght@500;700&display=swap');
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: sans-serif; }
+        canvas { display: block; }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #050505;
-            color: #fff;
-            font-family: 'Oswald', sans-serif;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: radial-gradient(circle at center, #1a0000 0%, #000000 80%);
-        }
-
-        /* --- GRABPACK HÄNDE & KABEL --- */
-        .grabpack-container {
+        /* UI Overlay */
+        #ui-layer {
             position: absolute;
-            top: 50%;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none; /* Damit sie das Klicken nicht blockieren */
-            transform: translateY(-50%);
-            z-index: 5;
-        }
-
-        .grabpack-arm {
-            display: flex;
-            align-items: center;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* Die Kabel */
-        .wire {
-            width: 200px;
-            height: 15px;
-            background: repeating-linear-gradient(
-                45deg,
-                #222,
-                #222 10px,
-                #ffcc00 10px,
-                #ffcc00 20px
-            );
-            border: 2px solid #000;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.8);
-        }
-
-        /* Die Hände (vereinfacht dargestellt) */
-        .hand {
-            width: 80px;
-            height: 90px;
-            border-radius: 20px 40px 40px 20px;
-            border: 3px solid #000;
-            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.5), 0 0 15px rgba(0,0,0,0.5);
-            position: relative;
-        }
-
-        /* Linke Hand (Blau) */
-        .arm-left {
-            transform: translateX(-150px); /* Startposition (versteckt) */
-        }
-        .arm-left .hand {
-            background-color: #00bcd4; /* Huggy Wuggy Blau */
-            border-radius: 40px 20px 20px 40px;
-        }
-
-        /* Rechte Hand (Rot) */
-        .arm-right {
-            flex-direction: row-reverse;
-            transform: translateX(150px); /* Startposition (versteckt) */
-        }
-        .arm-right .hand {
-            background-color: #d32f2f; /* GrabPack Rot */
-            border-radius: 20px 40px 40px 20px;
-        }
-
-        /* --- MENÜ DESIGN --- */
-        .menu-container {
-            text-align: center;
-            z-index: 10;
-            padding: 40px;
-            border-radius: 15px;
-            background: rgba(0, 0, 0, 0.7);
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.2);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 0, 0, 0.4);
-            position: relative;
-        }
-
-        h1 {
-            font-family: 'Nosifer', display;
-            color: #d32f2f;
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 10px rgba(211, 47, 47, 0.8);
-        }
-
-        h2 {
-            color: #b0bec5;
-            font-size: 1.5rem;
-            margin-top: 0;
-            margin-bottom: 40px;
-            letter-spacing: 5px;
-        }
-
-        .button-container {
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            align-items: center;
+            justify-content: space-between;
         }
 
-        @media (min-width: 600px) {
-            .button-container {
-                flex-direction: row;
-                justify-content: center;
-            }
+        #crosshair {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transform: translate(-50%, -50%);
         }
 
-        .game-btn {
-            background: rgba(0, 0, 0, 0.8);
-            color: #fff;
-            border: 2px solid #555;
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            font-family: 'Oswald', sans-serif;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 220px;
-            border-radius: 5px;
-            position: relative;
-            z-index: 20;
+        /* Mobile Joystick */
+        #joystick-container {
+            position: absolute;
+            bottom: 50px; left: 50px;
+            width: 120px; height: 120px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            display: none; /* Wird per JS für Mobile aktiviert */
+            pointer-events: auto;
+        }
+        #joystick-knob {
+            position: absolute;
+            top: 35px; left: 35px;
+            width: 50px; height: 50px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
         }
 
-        .game-btn.pc-btn:hover {
-            border-color: #00bcd4;
-            box-shadow: 0 0 20px #00bcd4;
-            text-shadow: 0 0 8px #00bcd4;
-        }
-
-        .game-btn.mobile-btn:hover {
-            border-color: #d32f2f;
-            box-shadow: 0 0 20px #d32f2f;
-            text-shadow: 0 0 8px #d32f2f;
-        }
-
-        #loading-screen {
-            display: none;
-            font-size: 2rem;
-            color: #d32f2f;
-            text-align: center;
-            animation: pulse 1.5s infinite;
-            z-index: 30;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+        #instructions {
+            position: absolute;
+            bottom: 20px; width: 100%;
+            text-align: center; color: white;
+            text-shadow: 2px 2px 4px #000;
         }
     </style>
 </head>
 <body>
 
-    <div class="grabpack-container">
-        <div class="grabpack-arm arm-left" id="hand-left">
-            <div class="wire"></div>
-            <div class="hand"></div>
-        </div>
-        <div class="grabpack-arm arm-right" id="hand-right">
-            <div class="wire"></div>
-            <div class="hand"></div>
-        </div>
+    <div id="ui-layer">
+        <div id="crosshair"></div>
+        <div id="joystick-container"><div id="joystick-knob"></div></div>
+        <div id="instructions">PC: WASD + Maus | Mobile: Joystick + Tippen</div>
     </div>
 
-    <div class="menu-container" id="main-menu">
-        <h1>POPPY PLAYTIME</h1>
-        <h2>CHAPTER 5 - 3D REMAKE</h2>
-        
-        <div class="button-container">
-            <button class="game-btn pc-btn" 
-                    onmouseenter="hoverEffect('PC')" 
-                    onmouseleave="resetHands()" 
-                    onclick="startGame('PC')">🖥️ PC Starten</button>
-                    
-            <button class="game-btn mobile-btn" 
-                    onmouseenter="hoverEffect('Mobile')" 
-                    onmouseleave="resetHands()" 
-                    onclick="startGame('Mobile')">📱 Mobile Starten</button>
-        </div>
-    </div>
-
-    <div id="loading-screen">
-        System wird hochgefahren...<br><span style="font-size: 1rem; color: #777;">Achtung: Experiment 1006 aktiv</span>
-    </div>
-
-    <script>
-        // --- SOUND EFFEKTE ---
-        // Hier kannst du später deine eigenen MP3-Dateien einfügen (z.B. 'sounds/scary-hover.mp3')
-        // Fürs Erste nutze ich leise, freie Klick-Sounds aus dem Web als Platzhalter.
-        const hoverSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
-        const clickSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
-        
-        // Lautstärke etwas anpassen, damit es nicht zu laut ist
-        hoverSound.volume = 0.3;
-        clickSound.volume = 0.8;
-
-        const leftHand = document.getElementById('hand-left');
-        const rightHand = document.getElementById('hand-right');
-
-        // Funktion wenn man mit der Maus über einen Button fährt
-        function hoverEffect(platform) {
-            // Sound abspielen (Browser blockieren Sounds manchmal, bevor man 1x irgendwo geklickt hat)
-            hoverSound.currentTime = 0; // Sound zurückspulen
-            hoverSound.play().catch(e => console.log("Sound geblockt vor erstem Klick"));
-
-            // Hände bewegen
-            if(platform === 'PC') {
-                leftHand.style.transform = 'translateX(20px)'; // Blaue Hand greift an
-            } else if (platform === 'Mobile') {
-                rightHand.style.transform = 'translateX(-20px)'; // Rote Hand greift an
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
             }
         }
+    </script>
 
-        // Funktion wenn die Maus den Button verlässt
-        function resetHands() {
-            leftHand.style.transform = 'translateX(-150px)'; // Blaue Hand zurück
-            rightHand.style.transform = 'translateX(150px)'; // Rote Hand zurück
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.15);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        // --- LICHT (Gruselig) ---
+        const flashlight = new THREE.SpotLight(0xffffff, 10);
+        flashlight.angle = Math.PI / 6;
+        flashlight.penumbra = 0.3;
+        camera.add(flashlight);
+        flashlight.position.set(0, 0, 1);
+        flashlight.target.position.set(0, 0, -5);
+        camera.add(flashlight.target);
+        scene.add(camera);
+
+        const ambient = new THREE.AmbientLight(0x404040, 0.2);
+        scene.add(ambient);
+
+        // --- WELT (Der Flur) ---
+        const floorGeo = new THREE.PlaneGeometry(100, 100);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        scene.add(floor);
+
+        // Wände bauen
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x221111 });
+        for(let i = 0; i < 10; i++) {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(1, 5, 10), wallMat);
+            wall.position.set(3, 2.5, -i * 10);
+            scene.add(wall);
+            const wallLeft = wall.clone();
+            wallLeft.position.x = -3;
+            scene.add(wallLeft);
         }
 
-        // Funktion beim Klicken
-        function startGame(platform) {
-            clickSound.play();
-            
-            const mainMenu = document.getElementById('main-menu');
-            const loadingScreen = document.getElementById('loading-screen');
-            const grabpack = document.querySelector('.grabpack-container');
-            
-            // Hände komplett in die Mitte fahren lassen (greifen nach dem Bildschirm)
-            leftHand.style.transform = 'translateX(200px)';
-            rightHand.style.transform = 'translateX(-200px)';
+        // --- GRABPACK (Hände) ---
+        const handGeo = new THREE.BoxGeometry(0.2, 0.2, 0.4);
+        const blueHand = new THREE.Mesh(handGeo, new THREE.MeshStandardMaterial({ color: 0x0000ff }));
+        const redHand = new THREE.Mesh(handGeo, new THREE.MeshStandardMaterial({ color: 0xff0000 }));
+        
+        // Hände an die Kamera hängen
+        blueHand.position.set(-0.5, -0.4, -0.8);
+        redHand.position.set(0.5, -0.4, -0.8);
+        camera.add(blueHand);
+        camera.add(redHand);
 
-            // Nach kurzem Delay das Menü ausblenden
-            setTimeout(() => {
-                mainMenu.style.display = 'none';
-                grabpack.style.display = 'none';
-                loadingScreen.style.display = 'block';
-            }, 500);
-            
-            // Simulierter Ladevorgang
-            setTimeout(() => {
-                loadingScreen.innerHTML = platform + " Version bereit! <br><br> <span style='font-size:1rem; color:#fff;'>(Lade 3D Engine...)</span>";
-            }, 3500);
+        // --- STEUERUNG VARIABLE ---
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        const velocity = new THREE.Vector3();
+        const direction = new THREE.Vector3();
+
+        // Check for Mobile
+        if ('ontouchstart' in window) {
+            document.getElementById('joystick-container').style.display = 'block';
         }
+
+        // Tastatur Events
+        window.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'KeyW': moveForward = true; break;
+                case 'KeyS': moveBackward = true; break;
+                case 'KeyA': moveLeft = true; break;
+                case 'KeyD': moveRight = true; break;
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            switch (e.code) {
+                case 'KeyW': moveForward = false; break;
+                case 'KeyS': moveBackward = false; break;
+                case 'KeyA': moveLeft = false; break;
+                case 'KeyD': moveRight = false; break;
+            }
+        });
+
+        // Maus Steuerung (Pointer Lock)
+        window.addEventListener('click', () => {
+            if (document.pointerLockElement !== renderer.domElement) {
+                renderer.domElement.requestPointerLock();
+            }
+            // Schießen Animation (Beispiel)
+            blueHand.position.z = -2;
+            setTimeout(() => blueHand.position.z = -0.8, 200);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (document.pointerLockElement === renderer.domElement) {
+                camera.rotation.y -= e.movementX * 0.002;
+                camera.rotation.x -= e.movementY * 0.002;
+            }
+        });
+
+        // --- GAME LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Bewegung berechnen
+            velocity.x -= velocity.x * 10.0 * 0.016;
+            velocity.z -= velocity.z * 10.0 * 0.016;
+
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+            direction.normalize();
+
+            if (moveForward || moveBackward) velocity.z -= direction.z * 40.0 * 0.016;
+            if (moveLeft || moveRight) velocity.x -= direction.x * 40.0 * 0.016;
+
+            camera.translateX(-velocity.x * 0.016);
+            camera.translateZ(velocity.z * 0.016);
+            camera.position.y = 1.6; // Augenhöhe
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>
