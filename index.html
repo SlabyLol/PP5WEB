@@ -1,288 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Russian Roulette × Night City</title>
-<style>
-:root{--pink:#ff0044;--cyan:#00ffff;--purple:#c300ff;--dark:#0a0015;}
-body{margin:0;height:100vh;background:var(--dark);color:#e8f0ff;font-family:'Courier New',monospace;overflow:hidden;}
-.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:10;padding:20px;}
-.screen.active{display:flex;}
-.title{font-size:clamp(5rem,15vw,10rem);font-weight:900;text-transform:uppercase;letter-spacing:0.5em;color:#fff;text-shadow:0 0 25px var(--cyan),0 0 70px var(--pink);}
-button,input{padding:12px 20px;margin:5px;font-size:1.5rem;color:var(--pink);background:transparent;border:2px solid var(--pink);cursor:pointer;}
-button:hover{background:var(--pink);color:#000;}
-.layout{display:flex;width:100%;max-width:1200px;margin-top:20px;}
-.left{flex:1;}
-.right{width:300px;border-left:2px solid var(--cyan);padding-left:10px;overflow-y:auto;max-height:400px;}
-.player{border:1px solid var(--pink);margin:5px;padding:5px;border-radius:5px;text-align:center;transition:0.5s;}
-.dead{opacity:0.3;text-decoration:line-through;}
-#chatBox{height:150px;overflow-y:auto;border:1px solid var(--cyan);margin-top:10px;padding:5px;background:#0a0015;}
-#gameArea{position:relative;width:600px;height:600px;margin:50px auto;}
-#circle{position:absolute;inset:0;border-radius:50%;border:2px solid var(--cyan);}
-.playerLabel{position:absolute;transform:translate(-50%,-50%);transition:all 0.5s;}
-#arrow{position:absolute;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:30px solid yellow;top:-15px;left:50%;transform-origin:center bottom;transition:transform 0.5s;}
-#gun{font-size:100px;cursor:pointer;user-select:none;position:absolute;bottom:-80px;left:50%;transform:translateX(-50%);transition:all 0.5s;}
-#status{text-align:center;margin:20px;font-size:2rem;}
-@keyframes bangAnim {0%{transform:scale(1) rotate(0deg);opacity:1;}50%{transform:scale(1.5) rotate(30deg);opacity:1;}100%{transform:scale(2) rotate(180deg);opacity:0;}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poppy Playtime Chapter 5 - Level 2</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="menu-overlay">
+        <div class="menu-box">
+            <h1>POPPY PLAYTIME</h1>
+            <p style="color:#aaa; letter-spacing:8px;">CHAPTER 5</p>
+            <div class="p-select">
+                <button class="btn btn-pc" onclick="startGame('PC')">🖥️ PC MODE</button>
+                <button class="btn btn-mobile" onclick="startGame('Mobile')">📱 MOBILE</button>
+            </div>
+        </div>
+    </div>
 
-<div id="startScreen" class="screen active">
-<h1 class="title">RUSSIAN ROULETTE</h1>
-<input id="nameInput" placeholder="YOUR HANDLE / NICKNAME" maxlength="16">
-<button id="enterBtn">ENTER</button>
-</div>
+    <div id="loading-screen" style="display: none;">
+        <div class="load-content">
+            <div class="jumping-p">P</div>
+            <h1 class="loading-text">PLAYTIME CO. WIRD GELADEN...</h1>
+        </div>
+    </div>
 
-<div id="menuScreen" class="screen">
-<h1 class="title">NIGHT CITY</h1>
-<button id="createPublicBtn">CREATE PUBLIC LOBBY</button>
-<input id="privateCodeInput" placeholder="Private Code">
-<button id="createPrivateBtn">CREATE PRIVATE LOBBY</button>
-<input id="joinLobbyInput" placeholder="Lobby ID">
-<input id="joinCodeInput" placeholder="Code if private">
-<button id="joinBtn">JOIN LOBBY</button>
-<h3>Public Servers</h3>
-<div id="serverList"></div>
-</div>
+    <div id="game-msg">MISSION: FINDE DEN SCANNER</div>
 
-<div id="lobbyScreen" class="screen">
-<h1 class="title">LOBBY <span id="lobbyCodeDisplay">----</span></h1>
-<div class="layout">
-<div class="left">
-<button id="leaveBtn">LEAVE</button>
-<button id="addKiBtn">ADD AI PLAYER</button>
-<div id="chatBox"></div>
-<input id="chatInput" placeholder="Message">
-<button id="sendBtn">SEND</button>
-</div>
-<div class="right">
-<h3>PLAYERS</h3>
-<div id="playerList"></div>
-<button id="startGameBtn">START GAME</button>
-</div>
-</div>
-</div>
+    <div id="dialog-container">
+        <span class="poppy-name">Poppy:</span>
+        <div id="dialog-text">...</div>
+    </div>
 
-<div id="gameScreen" class="screen">
-<h1 class="title">GAME ON</h1>
-<div id="status">Waiting to start...</div>
-<div id="gameArea">
-<div id="circle"></div>
-<div id="arrow"></div>
-<div id="gun">🔫</div>
-</div>
-<div style="margin-top:20px;">
-<button id="spinBtn">SPIN CHAMBER</button>
-<button id="shootBtn">SHOOT ×1</button>
-<button id="doubleShootBtn">SHOOT ×2</button>
-<button id="giveUpBtn">GIVE UP</button>
-</div>
-<div class="right">
-<h3>PLAYERS</h3>
-<div id="gamePlayers"></div>
-</div>
-</div>
+    <div id="mobile-ui">
+        <div id="joy-move" class="joy-area"><div class="knob" id="knob-move"></div></div>
+        <div id="joy-look" class="joy-area"><div class="knob" id="knob-look"></div></div>
+        <div class="shoot-btns">
+            <div id="b-blue" class="s-btn" onpointerdown="shoot('blue')"></div>
+            <div id="b-red" class="s-btn" onpointerdown="shoot('red')"></div>
+        </div>
+    </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getDatabase, ref, set, push, onValue, get, remove, onDisconnect, update, runTransaction } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-database.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-
-const firebaseConfig = {
-apiKey: "AIzaSyBa5w0hQ1v7Nowk-BvDgkGeNRNf1WJtDgw",
-authDomain: "rrweb-dc73f.firebaseapp.com",
-databaseURL: "https://rrweb-dc73f-default-rtdb.europe-west1.firebasedatabase.app",
-projectId: "rrweb-dc73f",
-storageBucket: "rrweb-dc73f.appspot.com",
-messagingSenderId: "247426843219",
-appId: "1:247426843219:web:c466e97fd59ee160c9bca6"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const auth = getAuth(app);
-
-let currentUser=null, lobbyId=null, myKey=null, isHost=false;
-let players=[], gameState=null;
-let playerName="", chambers=6;
-
-const startScreen=document.getElementById('startScreen');
-const menuScreen=document.getElementById('menuScreen');
-const lobbyScreen=document.getElementById('lobbyScreen');
-const gameScreen=document.getElementById('gameScreen');
-const nameInput=document.getElementById('nameInput');
-const enterBtn=document.getElementById('enterBtn');
-const createPublicBtn=document.getElementById('createPublicBtn');
-const createPrivateBtn=document.getElementById('createPrivateBtn');
-const privateCodeInput=document.getElementById('privateCodeInput');
-const joinLobbyInput=document.getElementById('joinLobbyInput');
-const joinCodeInput=document.getElementById('joinCodeInput');
-const joinBtn=document.getElementById('joinBtn');
-const serverList=document.getElementById('serverList');
-const lobbyCodeDisplay=document.getElementById('lobbyCodeDisplay');
-const leaveBtn=document.getElementById('leaveBtn');
-const addKiBtn=document.getElementById('addKiBtn');
-const playerList=document.getElementById('playerList');
-const chatBox=document.getElementById('chatBox');
-const chatInput=document.getElementById('chatInput');
-const sendBtn=document.getElementById('sendBtn');
-const startGameBtn=document.getElementById('startGameBtn');
-const statusDisplay=document.getElementById('status');
-const gamePlayers=document.getElementById('gamePlayers');
-const spinBtn=document.getElementById('spinBtn');
-const shootBtn=document.getElementById('shootBtn');
-const doubleShootBtn=document.getElementById('doubleShootBtn');
-const giveUpBtn=document.getElementById('giveUpBtn');
-const gameArea=document.getElementById('gameArea');
-const circle=document.getElementById('circle');
-const arrow=document.getElementById('arrow');
-const gun=document.getElementById('gun');
-
-signInAnonymously(auth).catch(console.error);
-onAuthStateChanged(auth,u=>{ if(u) currentUser=u;});
-
-function showScreen(screen){ [startScreen,menuScreen,lobbyScreen,gameScreen].forEach(s=>s.classList.remove('active')); screen.classList.add('active'); }
-enterBtn.onclick=()=>{ playerName=nameInput.value||"Choom"; showScreen(menuScreen); loadPublicServers(); };
-nameInput.addEventListener('keydown',e=>{ if(e.key==="Enter") enterBtn.click(); });
-
-function generateLobbyID(){ return Math.random().toString(36).substring(2,6).toUpperCase(); }
-async function createLobby(isPublic, code=null){
-lobbyId=generateLobbyID(); isHost=true;
-await set(ref(db,"lobbies/"+lobbyId),{public:isPublic,privateCode:code||null,hostUid:currentUser.uid,createdAt:Date.now()});
-joinLobby(lobbyId);
-}
-createPublicBtn.onclick=()=>createLobby(true);
-createPrivateBtn.onclick=()=>createLobby(false,privateCodeInput.value.trim());
-
-async function joinLobby(id){
-const snap=await get(ref(db,"lobbies/"+id));
-if(!snap.exists()){ alert("Lobby not found"); return; }
-const data=snap.val();
-if(!data.public && joinCodeInput.value!==data.privateCode){ alert("Wrong code"); return; }
-lobbyId=id; isHost=(data.hostUid===currentUser.uid);
-const pRef=push(ref(db,"lobbies/"+lobbyId+"/players"));
-myKey=pRef.key; set(pRef,{name:playerName,uid:currentUser.uid,isKI:false,alive:true});
-onDisconnect(pRef).remove();
-listenLobby();
-showScreen(lobbyScreen);
-}
-joinBtn.onclick=()=>joinLobby(joinLobbyInput.value.toUpperCase());
-
-function listenLobby(){
-onValue(ref(db,"lobbies/"+lobbyId),snap=>{
-const data=snap.val();
-if(!data){ showScreen(menuScreen); return; }
-lobbyCodeDisplay.textContent=lobbyId;
-renderPlayers(data.players||{});
-renderChat(data.chat||{});
-let humanCount=0; for(let k in data.players) if(!data.players[k].isKI) humanCount++;
-if(isHost && humanCount===0) remove(ref(db,"lobbies/"+lobbyId));
-if(data.gameState && data.gameState.started){
-gameState=data.gameState;
-showScreen(gameScreen);
-renderGameCircle();
-renderGameUI();
-}
-});
-}
-
-function renderPlayers(playersObj){ players=[]; let html=""; for(let k in playersObj){ const p=playersObj[k]; players.push({key:k,...p}); html+=`<div class="player">${p.name}${p.isKI?" 🤖":""}</div>`;} playerList.innerHTML=html; }
-function renderChat(chatObj){ let html=""; for(let k in chatObj) html+=`<div><b>${chatObj[k].name}:</b> ${chatObj[k].text}</div>`; chatBox.innerHTML=html; }
-
-addKiBtn.onclick=()=>push(ref(db,"lobbies/"+lobbyId+"/players"),{name:"AI-"+Math.floor(Math.random()*100),uid:"AI"+Date.now(),isKI:true,alive:true});
-leaveBtn.onclick=()=>{ if(myKey) remove(ref(db,"lobbies/"+lobbyId+"/players/"+myKey]); showScreen(menuScreen); loadPublicServers(); };
-sendBtn.onclick=()=>{ if(chatInput.value) push(ref(db,"lobbies/"+lobbyId+"/chat"),{name:playerName,text:chatInput.value}); chatInput.value=""; };
-
-startGameBtn.onclick=async()=>{
-if(!isHost){ alert("Only host can start game"); return; }
-if(players.length<2){ alert("Need at least 2 players"); return; }
-await set(ref(db,"lobbies/"+lobbyId+"/gameState"),{
-started:true, bulletPos:Math.floor(Math.random()*chambers),
-currentPos:0, currentTurn:0, chambers:chambers
-});
-};
-
-// --- Game Circle ---
-function renderGameCircle(){
-const num=players.length; const radius=200; const cx=300; const cy=300;
-gameArea.querySelectorAll('.playerLabel').forEach(el=>el.remove());
-for(let i=0;i<num;i++){
-const angle=(i/num)*2*Math.PI;
-const x=cx+radius*Math.cos(angle);
-const y=cy+radius*Math.sin(angle);
-const label=document.createElement('div');
-label.className='playerLabel';
-label.style.left=x+'px'; label.style.top=y+'px';
-label.textContent=players[i].name;
-gameArea.appendChild(label);
-}
-rotateArrow();
-}
-
-function rotateArrow(){ if(!gameState) return; const num=players.length; const angle=(gameState.currentTurn/num)*360; arrow.style.transform=`rotate(${angle}deg)`; }
-
-function renderGameUI(){
-const alivePlayers=players.filter(p=>p.alive);
-let html="";
-alivePlayers.forEach(p=>{ html+=`<div class="player${p.alive?'':' dead'}">${p.name}${p.isKI?' 🤖':''}</div>`; });
-gamePlayers.innerHTML=html;
-statusDisplay.textContent=`Turn: ${players[gameState.currentTurn]?.name}`;
-rotateArrow();
-updateButtons();
-}
-
-// --- Buttons ---
-function updateButtons(){
-const myTurn=players[gameState.currentTurn]?.uid===currentUser?.uid;
-[shootBtn,doubleShootBtn,giveUpBtn,spinBtn].forEach(b=>b.disabled=!myTurn);
-}
-
-// --- Shoot Logic ---
-async function doShoot(count=1){
-if(!gameState) return;
-let pos=gameState.currentPos; let bang=false;
-for(let i=0;i<count;i++){ pos=(pos+1)%chambers; if(pos===gameState.bulletPos){ bang=true; break; } }
-const currentPlayer=players[gameState.currentTurn];
-if(bang){
-await update(ref(db,"lobbies/"+lobbyId+"/players/"+currentPlayer.key),{alive:false});
-statusDisplay.textContent=`BANG! ${currentPlayer.name} died!`;
-const labelEl=[...document.querySelectorAll('.playerLabel')].find(el=>el.textContent===currentPlayer.name);
-if(labelEl){ labelEl.style.animation='bangAnim 1s forwards'; }
-checkGameOver();
-}else{
-await update(ref(db,"lobbies/"+lobbyId+"/gameState"),{currentPos:pos});
-nextTurn();
-}
-renderGameUI();
-}
-
-function nextTurn(){
-runTransaction(ref(db,"lobbies/"+lobbyId+"/gameState/currentTurn"),t=>{
-let next=(t+1)%players.length;
-while(!players[next]?.alive) next=(next+1)%players.length;
-return next;
-});
-}
-
-shootBtn.onclick=()=>doShoot(1);
-doubleShootBtn.onclick=()=>doShoot(2);
-spinBtn.onclick=async()=>{ await update(ref(db,"lobbies/"+lobbyId+"/gameState"),{bulletPos:Math.floor(Math.random()*chambers),currentPos:0}); };
-giveUpBtn.onclick=async()=>{ await update(ref(db,"lobbies/"+lobbyId+"/players/"+players[gameState.currentTurn].key),{alive:false}); nextTurn(); };
-
-function checkGameOver(){
-const alive=players.filter(p=>p.alive); if(alive.length<=1){ setTimeout(()=>{ alert(`Winner: ${alive[0]?.name||"None"}`); location.reload(); },1500); }
-}
-
-// --- Public Servers ---
-function loadPublicServers(){
-onValue(ref(db,"lobbies"),snap=>{
-const data=snap.val(); let html="";
-if(data) for(let id in data) if(data[id].public) html+=`<div>${id}</div>`;
-serverList.innerHTML=html;
-});
-}
-</script>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
